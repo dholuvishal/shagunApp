@@ -177,52 +177,59 @@ const verifyMobile = async (req, res, next) => {
         const token = createToken(findUser);
         return res.json(successResponse({findUser,token}, 200, "Login successful! Welcome back!"));
       }
-  
-      const existingOtp = await Otp.findOne({
-        $and: [{ type: OTP_TYPE.MOBILE }, { mobileNumber }],
-      });
-      if (!existingOtp) {
-        return res
-          .status(400)
-          .json(
-            errorResponse(
-              400,
-              `Otp not found with this mobile number : ${mobileNumber}, Please request a new one.`
-            )
-          );
-      }
-  
-      // Check if OTP has expired
-      const otpUpdatedAt = moment(existingOtp.updatedAt);
-      const expiryTime = otpUpdatedAt.add(process.env.OTP_EXPIRY_TIME, "minutes");
-  
-      if (moment().isAfter(expiryTime)) {
-        return res
-          .status(410)
-          .json(errorResponse(410, "OTP has expired. Please request a new one."));
-      }
-  
-      if (existingOtp.otp == otp) {
-        
-        findUser.isVerify = true;
-
-        await findUser.save();
 
         await Otp.findOneAndDelete({ mobileNumber });
 
-         const token = createToken(findUser);
+        const token = createToken(findUser);
 
         res.json(successResponse({findUser,token}, 200, "Login successful! Welcome back!"));
-      } else {
-        return res
-          .status(400)
-          .json(
-            errorResponse(
-              400,
-              "Invalid OTP. Please check your email for the correct verification code."
-            )
-          );
-      }
+
+  
+      // const existingOtp = await Otp.findOne({
+      //   $and: [{ type: OTP_TYPE.MOBILE }, { mobileNumber }],
+      // });
+      // if (!existingOtp) {
+      //   return res
+      //     .status(400)
+      //     .json(
+      //       errorResponse(
+      //         400,
+      //         `Otp not found with this mobile number : ${mobileNumber}, Please request a new one.`
+      //       )
+      //     );
+      // }
+  
+      // // Check if OTP has expired
+      // const otpUpdatedAt = moment(existingOtp.updatedAt);
+      // const expiryTime = otpUpdatedAt.add(process.env.OTP_EXPIRY_TIME, "minutes");
+  
+      // if (moment().isAfter(expiryTime)) {
+      //   return res
+      //     .status(410)
+      //     .json(errorResponse(410, "OTP has expired. Please request a new one."));
+      // }
+  
+      // if (existingOtp.otp == otp) {
+        
+      //   findUser.isVerify = true;
+
+      //   await findUser.save();
+
+      //   await Otp.findOneAndDelete({ mobileNumber });
+
+      //    const token = createToken(findUser);
+
+      //   res.json(successResponse({findUser,token}, 200, "Login successful! Welcome back!"));
+      // } else {
+      //   return res
+      //     .status(400)
+      //     .json(
+      //       errorResponse(
+      //         400,
+      //         "Invalid OTP. Please check your email for the correct verification code."
+      //       )
+      //     );
+      // }
     } catch (error) {
       console.error(`Error in userController:verifyMobile: ${error}`);
       next(error);
